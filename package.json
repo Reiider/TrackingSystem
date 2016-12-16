@@ -20,6 +20,7 @@
   "homepage": "https://github.com/Reiider/TrackingSystem#readme",
   "dependencies": {
     "angular": "^1.5.8",
+    "angular-drag-and-drop-lists": "^1.4.0",
     "angular-ui-router": "^1.0.0-beta.3",
     "babel-core": "^6.18.2",
     "babel-loader": "^6.2.7",

@@ -54,13 +54,21 @@
 
 	var _angularUiRouter2 = _interopRequireDefault(_angularUiRouter);
 
-	var _serviceModule = __webpack_require__(4);
+	var _angularDragAndDropLists = __webpack_require__(4);
+
+	var _angularDragAndDropLists2 = _interopRequireDefault(_angularDragAndDropLists);
+
+	var _serviceModule = __webpack_require__(5);
 
 	var _serviceModule2 = _interopRequireDefault(_serviceModule);
 
-	var _boardModule = __webpack_require__(5);
+	var _boardModule = __webpack_require__(6);
 
 	var _boardModule2 = _interopRequireDefault(_boardModule);
+
+	var _viewController = __webpack_require__(13);
+
+	var _viewController2 = _interopRequireDefault(_viewController);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -70,12 +78,12 @@
 	import MainController from './main.controller.js';
 	*/
 
-	_angular2.default.module('app', ['ui.router', _serviceModule2.default.name, _boardModule2.default.name]); /*
-	                                                                                                          .config(mainConfig)
-	                                                                                                          .controller('FilterController', FilterController)
-	                                                                                                          .controller('MainController', MainController)
-	                                                                                                          .component('selectDate', selectDateComponent);
-	                                                                                                          */
+	_angular2.default.module('app', ['ui.router', _serviceModule2.default.name, 'dndLists', _boardModule2.default.name]).controller('ViewController', _viewController2.default); /*
+	                                                                                                                                                                             .config(mainConfig)
+	                                                                                                                                                                             .controller('FilterController', FilterController)
+	                                                                                                                                                                             .controller('MainController', MainController)
+	                                                                                                                                                                             .component('selectDate', selectDateComponent);
+	                                                                                                                                                                             */
 
 /***/ },
 /* 1 */
@@ -41336,6 +41344,602 @@
 
 /***/ },
 /* 4 */
+/***/ function(module, exports) {
+
+	/**
+	 * angular-drag-and-drop-lists v1.4.0
+	 *
+	 * Copyright (c) 2014 Marcel Juenemann marcel@juenemann.cc
+	 * Copyright (c) 2014-2016 Google Inc.
+	 * https://github.com/marceljuenemann/angular-drag-and-drop-lists
+	 *
+	 * License: MIT
+	 */
+	angular.module('dndLists', [])
+
+	  /**
+	   * Use the dnd-draggable attribute to make your element draggable
+	   *
+	   * Attributes:
+	   * - dnd-draggable      Required attribute. The value has to be an object that represents the data
+	   *                      of the element. In case of a drag and drop operation the object will be
+	   *                      serialized and unserialized on the receiving end.
+	   * - dnd-selected       Callback that is invoked when the element was clicked but not dragged.
+	   *                      The original click event will be provided in the local event variable.
+	   * - dnd-effect-allowed Use this attribute to limit the operations that can be performed. Options:
+	   *                      - "move": The drag operation will move the element. This is the default.
+	   *                      - "copy": The drag operation will copy the element. Shows a copy cursor.
+	   *                      - "copyMove": The user can choose between copy and move by pressing the
+	   *                        ctrl or shift key. *Not supported in IE:* In Internet Explorer this
+	   *                        option will be the same as "copy". *Not fully supported in Chrome on
+	   *                        Windows:* In the Windows version of Chrome the cursor will always be the
+	   *                        move cursor. However, when the user drops an element and has the ctrl
+	   *                        key pressed, we will perform a copy anyways.
+	   *                      - HTML5 also specifies the "link" option, but this library does not
+	   *                        actively support it yet, so use it at your own risk.
+	   * - dnd-moved          Callback that is invoked when the element was moved. Usually you will
+	   *                      remove your element from the original list in this callback, since the
+	   *                      directive is not doing that for you automatically. The original dragend
+	   *                      event will be provided in the local event variable.
+	   * - dnd-canceled       Callback that is invoked if the element was dragged, but the operation was
+	   *                      canceled and the element was not dropped. The original dragend event will
+	   *                      be provided in the local event variable.
+	   * - dnd-copied         Same as dnd-moved, just that it is called when the element was copied
+	   *                      instead of moved. The original dragend event will be provided in the local
+	   *                      event variable.
+	   * - dnd-dragstart      Callback that is invoked when the element was dragged. The original
+	   *                      dragstart event will be provided in the local event variable.
+	   * - dnd-dragend        Callback that is invoked when the drag operation ended. Available local
+	   *                      variables are event and dropEffect.
+	   * - dnd-type           Use this attribute if you have different kinds of items in your
+	   *                      application and you want to limit which items can be dropped into which
+	   *                      lists. Combine with dnd-allowed-types on the dnd-list(s). This attribute
+	   *                      should evaluate to a string, although this restriction is not enforced.
+	   * - dnd-disable-if     You can use this attribute to dynamically disable the draggability of the
+	   *                      element. This is useful if you have certain list items that you don't want
+	   *                      to be draggable, or if you want to disable drag & drop completely without
+	   *                      having two different code branches (e.g. only allow for admins).
+	   *                      **Note**: If your element is not draggable, the user is probably able to
+	   *                      select text or images inside of it. Since a selection is always draggable,
+	   *                      this breaks your UI. You most likely want to disable user selection via
+	   *                      CSS (see user-select).
+	   *
+	   * CSS classes:
+	   * - dndDragging        This class will be added to the element while the element is being
+	   *                      dragged. It will affect both the element you see while dragging and the
+	   *                      source element that stays at it's position. Do not try to hide the source
+	   *                      element with this class, because that will abort the drag operation.
+	   * - dndDraggingSource  This class will be added to the element after the drag operation was
+	   *                      started, meaning it only affects the original element that is still at
+	   *                      it's source position, and not the "element" that the user is dragging with
+	   *                      his mouse pointer.
+	   */
+	  .directive('dndDraggable', ['$parse', '$timeout', 'dndDropEffectWorkaround', 'dndDragTypeWorkaround',
+	                      function($parse,   $timeout,   dndDropEffectWorkaround,   dndDragTypeWorkaround) {
+	    return function(scope, element, attr) {
+	      // Set the HTML5 draggable attribute on the element
+	      element.attr("draggable", "true");
+
+	      // If the dnd-disable-if attribute is set, we have to watch that
+	      if (attr.dndDisableIf) {
+	        scope.$watch(attr.dndDisableIf, function(disabled) {
+	          element.attr("draggable", !disabled);
+	        });
+	      }
+
+	      /**
+	       * When the drag operation is started we have to prepare the dataTransfer object,
+	       * which is the primary way we communicate with the target element
+	       */
+	      element.on('dragstart', function(event) {
+	        event = event.originalEvent || event;
+
+	        // Check whether the element is draggable, since dragstart might be triggered on a child.
+	        if (element.attr('draggable') == 'false') return true;
+
+	        // Serialize the data associated with this element. IE only supports the Text drag type
+	        event.dataTransfer.setData("Text", angular.toJson(scope.$eval(attr.dndDraggable)));
+
+	        // Only allow actions specified in dnd-effect-allowed attribute
+	        event.dataTransfer.effectAllowed = attr.dndEffectAllowed || "move";
+
+	        // Add CSS classes. See documentation above
+	        element.addClass("dndDragging");
+	        $timeout(function() { element.addClass("dndDraggingSource"); }, 0);
+
+	        // Workarounds for stupid browsers, see description below
+	        dndDropEffectWorkaround.dropEffect = "none";
+	        dndDragTypeWorkaround.isDragging = true;
+
+	        // Save type of item in global state. Usually, this would go into the dataTransfer
+	        // typename, but we have to use "Text" there to support IE
+	        dndDragTypeWorkaround.dragType = attr.dndType ? scope.$eval(attr.dndType) : undefined;
+
+	        // Try setting a proper drag image if triggered on a dnd-handle (won't work in IE).
+	        if (event._dndHandle && event.dataTransfer.setDragImage) {
+	          event.dataTransfer.setDragImage(element[0], 0, 0);
+	        }
+
+	        // Invoke callback
+	        $parse(attr.dndDragstart)(scope, {event: event});
+
+	        event.stopPropagation();
+	      });
+
+	      /**
+	       * The dragend event is triggered when the element was dropped or when the drag
+	       * operation was aborted (e.g. hit escape button). Depending on the executed action
+	       * we will invoke the callbacks specified with the dnd-moved or dnd-copied attribute.
+	       */
+	      element.on('dragend', function(event) {
+	        event = event.originalEvent || event;
+
+	        // Invoke callbacks. Usually we would use event.dataTransfer.dropEffect to determine
+	        // the used effect, but Chrome has not implemented that field correctly. On Windows
+	        // it always sets it to 'none', while Chrome on Linux sometimes sets it to something
+	        // else when it's supposed to send 'none' (drag operation aborted).
+	        var dropEffect = dndDropEffectWorkaround.dropEffect;
+	        scope.$apply(function() {
+	          switch (dropEffect) {
+	            case "move":
+	              $parse(attr.dndMoved)(scope, {event: event});
+	              break;
+	            case "copy":
+	              $parse(attr.dndCopied)(scope, {event: event});
+	              break;
+	            case "none":
+	              $parse(attr.dndCanceled)(scope, {event: event});
+	              break;
+	          }
+	          $parse(attr.dndDragend)(scope, {event: event, dropEffect: dropEffect});
+	        });
+
+	        // Clean up
+	        element.removeClass("dndDragging");
+	        $timeout(function() { element.removeClass("dndDraggingSource"); }, 0);
+	        dndDragTypeWorkaround.isDragging = false;
+	        event.stopPropagation();
+	      });
+
+	      /**
+	       * When the element is clicked we invoke the callback function
+	       * specified with the dnd-selected attribute.
+	       */
+	      element.on('click', function(event) {
+	        if (!attr.dndSelected) return;
+
+	        event = event.originalEvent || event;
+	        scope.$apply(function() {
+	          $parse(attr.dndSelected)(scope, {event: event});
+	        });
+
+	        // Prevent triggering dndSelected in parent elements.
+	        event.stopPropagation();
+	      });
+
+	      /**
+	       * Workaround to make element draggable in IE9
+	       */
+	      element.on('selectstart', function() {
+	        if (this.dragDrop) this.dragDrop();
+	      });
+	    };
+	  }])
+
+	  /**
+	   * Use the dnd-list attribute to make your list element a dropzone. Usually you will add a single
+	   * li element as child with the ng-repeat directive. If you don't do that, we will not be able to
+	   * position the dropped element correctly. If you want your list to be sortable, also add the
+	   * dnd-draggable directive to your li element(s). Both the dnd-list and it's direct children must
+	   * have position: relative CSS style, otherwise the positioning algorithm will not be able to
+	   * determine the correct placeholder position in all browsers.
+	   *
+	   * Attributes:
+	   * - dnd-list             Required attribute. The value has to be the array in which the data of
+	   *                        the dropped element should be inserted.
+	   * - dnd-allowed-types    Optional array of allowed item types. When used, only items that had a
+	   *                        matching dnd-type attribute will be dropable.
+	   * - dnd-disable-if       Optional boolean expresssion. When it evaluates to true, no dropping
+	   *                        into the list is possible. Note that this also disables rearranging
+	   *                        items inside the list.
+	   * - dnd-horizontal-list  Optional boolean expresssion. When it evaluates to true, the positioning
+	   *                        algorithm will use the left and right halfs of the list items instead of
+	   *                        the upper and lower halfs.
+	   * - dnd-dragover         Optional expression that is invoked when an element is dragged over the
+	   *                        list. If the expression is set, but does not return true, the element is
+	   *                        not allowed to be dropped. The following variables will be available:
+	   *                        - event: The original dragover event sent by the browser.
+	   *                        - index: The position in the list at which the element would be dropped.
+	   *                        - type: The dnd-type set on the dnd-draggable, or undefined if unset.
+	   *                        - external: Whether the element was dragged from an external source.
+	   * - dnd-drop             Optional expression that is invoked when an element is dropped on the
+	   *                        list. The following variables will be available:
+	   *                        - event: The original drop event sent by the browser.
+	   *                        - index: The position in the list at which the element would be dropped.
+	   *                        - item: The transferred object.
+	   *                        - type: The dnd-type set on the dnd-draggable, or undefined if unset.
+	   *                        - external: Whether the element was dragged from an external source.
+	   *                        The return value determines the further handling of the drop:
+	   *                        - false: The drop will be canceled and the element won't be inserted.
+	   *                        - true: Signalises that the drop is allowed, but the dnd-drop
+	   *                          callback already took care of inserting the element.
+	   *                        - otherwise: All other return values will be treated as the object to
+	   *                          insert into the array. In most cases you want to simply return the
+	   *                          item parameter, but there are no restrictions on what you can return.
+	   * - dnd-inserted         Optional expression that is invoked after a drop if the element was
+	   *                        actually inserted into the list. The same local variables as for
+	   *                        dnd-drop will be available. Note that for reorderings inside the same
+	   *                        list the old element will still be in the list due to the fact that
+	   *                        dnd-moved was not called yet.
+	   * - dnd-external-sources Optional boolean expression. When it evaluates to true, the list accepts
+	   *                        drops from sources outside of the current browser tab. This allows to
+	   *                        drag and drop accross different browser tabs. Note that this will allow
+	   *                        to drop arbitrary text into the list, thus it is highly recommended to
+	   *                        implement the dnd-drop callback to check the incoming element for
+	   *                        sanity. Furthermore, the dnd-type of external sources can not be
+	   *                        determined, therefore do not rely on restrictions of dnd-allowed-type.
+	   *
+	   * CSS classes:
+	   * - dndPlaceholder       When an element is dragged over the list, a new placeholder child
+	   *                        element will be added. This element is of type li and has the class
+	   *                        dndPlaceholder set. Alternatively, you can define your own placeholder
+	   *                        by creating a child element with dndPlaceholder class.
+	   * - dndDragover          Will be added to the list while an element is dragged over the list.
+	   */
+	  .directive('dndList', ['$parse', '$timeout', 'dndDropEffectWorkaround', 'dndDragTypeWorkaround',
+	                 function($parse,   $timeout,   dndDropEffectWorkaround,   dndDragTypeWorkaround) {
+	    return function(scope, element, attr) {
+	      // While an element is dragged over the list, this placeholder element is inserted
+	      // at the location where the element would be inserted after dropping
+	      var placeholder = getPlaceholderElement();
+	      var placeholderNode = placeholder[0];
+	      var listNode = element[0];
+	      placeholder.remove();
+
+	      var horizontal = attr.dndHorizontalList && scope.$eval(attr.dndHorizontalList);
+	      var externalSources = attr.dndExternalSources && scope.$eval(attr.dndExternalSources);
+
+	      /**
+	       * The dragenter event is fired when a dragged element or text selection enters a valid drop
+	       * target. According to the spec, we either need to have a dropzone attribute or listen on
+	       * dragenter events and call preventDefault(). It should be noted though that no browser seems
+	       * to enforce this behaviour.
+	       */
+	      element.on('dragenter', function (event) {
+	        event = event.originalEvent || event;
+	        if (!isDropAllowed(event)) return true;
+	        event.preventDefault();
+	      });
+
+	      /**
+	       * The dragover event is triggered "every few hundred milliseconds" while an element
+	       * is being dragged over our list, or over an child element.
+	       */
+	      element.on('dragover', function(event) {
+	        event = event.originalEvent || event;
+
+	        if (!isDropAllowed(event)) return true;
+
+	        // First of all, make sure that the placeholder is shown
+	        // This is especially important if the list is empty
+	        if (placeholderNode.parentNode != listNode) {
+	          element.append(placeholder);
+	        }
+
+	        if (event.target !== listNode) {
+	          // Try to find the node direct directly below the list node.
+	          var listItemNode = event.target;
+	          while (listItemNode.parentNode !== listNode && listItemNode.parentNode) {
+	            listItemNode = listItemNode.parentNode;
+	          }
+
+	          if (listItemNode.parentNode === listNode && listItemNode !== placeholderNode) {
+	            // If the mouse pointer is in the upper half of the child element,
+	            // we place it before the child element, otherwise below it.
+	            if (isMouseInFirstHalf(event, listItemNode)) {
+	              listNode.insertBefore(placeholderNode, listItemNode);
+	            } else {
+	              listNode.insertBefore(placeholderNode, listItemNode.nextSibling);
+	            }
+	          }
+	        } else {
+	          // This branch is reached when we are dragging directly over the list element.
+	          // Usually we wouldn't need to do anything here, but the IE does not fire it's
+	          // events for the child element, only for the list directly. Therefore, we repeat
+	          // the positioning algorithm for IE here.
+	          if (isMouseInFirstHalf(event, placeholderNode, true)) {
+	            // Check if we should move the placeholder element one spot towards the top.
+	            // Note that display none elements will have offsetTop and offsetHeight set to
+	            // zero, therefore we need a special check for them.
+	            while (placeholderNode.previousElementSibling
+	                 && (isMouseInFirstHalf(event, placeholderNode.previousElementSibling, true)
+	                 || placeholderNode.previousElementSibling.offsetHeight === 0)) {
+	              listNode.insertBefore(placeholderNode, placeholderNode.previousElementSibling);
+	            }
+	          } else {
+	            // Check if we should move the placeholder element one spot towards the bottom
+	            while (placeholderNode.nextElementSibling &&
+	                 !isMouseInFirstHalf(event, placeholderNode.nextElementSibling, true)) {
+	              listNode.insertBefore(placeholderNode,
+	                  placeholderNode.nextElementSibling.nextElementSibling);
+	            }
+	          }
+	        }
+
+	        // At this point we invoke the callback, which still can disallow the drop.
+	        // We can't do this earlier because we want to pass the index of the placeholder.
+	        if (attr.dndDragover && !invokeCallback(attr.dndDragover, event, getPlaceholderIndex())) {
+	          return stopDragover();
+	        }
+
+	        element.addClass("dndDragover");
+	        event.preventDefault();
+	        event.stopPropagation();
+	        return false;
+	      });
+
+	      /**
+	       * When the element is dropped, we use the position of the placeholder element as the
+	       * position where we insert the transferred data. This assumes that the list has exactly
+	       * one child element per array element.
+	       */
+	      element.on('drop', function(event) {
+	        event = event.originalEvent || event;
+
+	        if (!isDropAllowed(event)) return true;
+
+	        // The default behavior in Firefox is to interpret the dropped element as URL and
+	        // forward to it. We want to prevent that even if our drop is aborted.
+	        event.preventDefault();
+
+	        // Unserialize the data that was serialized in dragstart. According to the HTML5 specs,
+	        // the "Text" drag type will be converted to text/plain, but IE does not do that.
+	        var data = event.dataTransfer.getData("Text") || event.dataTransfer.getData("text/plain");
+	        var transferredObject;
+	        try {
+	          transferredObject = JSON.parse(data);
+	        } catch(e) {
+	          return stopDragover();
+	        }
+
+	        // Invoke the callback, which can transform the transferredObject and even abort the drop.
+	        var index = getPlaceholderIndex();
+	        if (attr.dndDrop) {
+	          transferredObject = invokeCallback(attr.dndDrop, event, index, transferredObject);
+	          if (!transferredObject) {
+	            return stopDragover();
+	          }
+	        }
+
+	        // Insert the object into the array, unless dnd-drop took care of that (returned true).
+	        if (transferredObject !== true) {
+	          scope.$apply(function() {
+	            scope.$eval(attr.dndList).splice(index, 0, transferredObject);
+	          });
+	        }
+	        invokeCallback(attr.dndInserted, event, index, transferredObject);
+
+	        // In Chrome on Windows the dropEffect will always be none...
+	        // We have to determine the actual effect manually from the allowed effects
+	        if (event.dataTransfer.dropEffect === "none") {
+	          if (event.dataTransfer.effectAllowed === "copy" ||
+	              event.dataTransfer.effectAllowed === "move") {
+	            dndDropEffectWorkaround.dropEffect = event.dataTransfer.effectAllowed;
+	          } else {
+	            dndDropEffectWorkaround.dropEffect = event.ctrlKey ? "copy" : "move";
+	          }
+	        } else {
+	          dndDropEffectWorkaround.dropEffect = event.dataTransfer.dropEffect;
+	        }
+
+	        // Clean up
+	        stopDragover();
+	        event.stopPropagation();
+	        return false;
+	      });
+
+	      /**
+	       * We have to remove the placeholder when the element is no longer dragged over our list. The
+	       * problem is that the dragleave event is not only fired when the element leaves our list,
+	       * but also when it leaves a child element -- so practically it's fired all the time. As a
+	       * workaround we wait a few milliseconds and then check if the dndDragover class was added
+	       * again. If it is there, dragover must have been called in the meantime, i.e. the element
+	       * is still dragging over the list. If you know a better way of doing this, please tell me!
+	       */
+	      element.on('dragleave', function(event) {
+	        event = event.originalEvent || event;
+
+	        element.removeClass("dndDragover");
+	        $timeout(function() {
+	          if (!element.hasClass("dndDragover")) {
+	            placeholder.remove();
+	          }
+	        }, 100);
+	      });
+
+	      /**
+	       * Checks whether the mouse pointer is in the first half of the given target element.
+	       *
+	       * In Chrome we can just use offsetY, but in Firefox we have to use layerY, which only
+	       * works if the child element has position relative. In IE the events are only triggered
+	       * on the listNode instead of the listNodeItem, therefore the mouse positions are
+	       * relative to the parent element of targetNode.
+	       */
+	      function isMouseInFirstHalf(event, targetNode, relativeToParent) {
+	        var mousePointer = horizontal ? (event.offsetX || event.layerX)
+	                                      : (event.offsetY || event.layerY);
+	        var targetSize = horizontal ? targetNode.offsetWidth : targetNode.offsetHeight;
+	        var targetPosition = horizontal ? targetNode.offsetLeft : targetNode.offsetTop;
+	        targetPosition = relativeToParent ? targetPosition : 0;
+	        return mousePointer < targetPosition + targetSize / 2;
+	      }
+
+	      /**
+	       * Tries to find a child element that has the dndPlaceholder class set. If none was found, a
+	       * new li element is created.
+	       */
+	      function getPlaceholderElement() {
+	        var placeholder;
+	        angular.forEach(element.children(), function(childNode) {
+	          var child = angular.element(childNode);
+	          if (child.hasClass('dndPlaceholder')) {
+	            placeholder = child;
+	          }
+	        });
+	        return placeholder || angular.element("<li class='dndPlaceholder'></li>");
+	      }
+
+	      /**
+	       * We use the position of the placeholder node to determine at which position of the array the
+	       * object needs to be inserted
+	       */
+	      function getPlaceholderIndex() {
+	        return Array.prototype.indexOf.call(listNode.children, placeholderNode);
+	      }
+
+	      /**
+	       * Checks various conditions that must be fulfilled for a drop to be allowed
+	       */
+	      function isDropAllowed(event) {
+	        // Disallow drop from external source unless it's allowed explicitly.
+	        if (!dndDragTypeWorkaround.isDragging && !externalSources) return false;
+
+	        // Check mimetype. Usually we would use a custom drag type instead of Text, but IE doesn't
+	        // support that.
+	        if (!hasTextMimetype(event.dataTransfer.types)) return false;
+
+	        // Now check the dnd-allowed-types against the type of the incoming element. For drops from
+	        // external sources we don't know the type, so it will need to be checked via dnd-drop.
+	        if (attr.dndAllowedTypes && dndDragTypeWorkaround.isDragging) {
+	          var allowed = scope.$eval(attr.dndAllowedTypes);
+	          if (angular.isArray(allowed) && allowed.indexOf(dndDragTypeWorkaround.dragType) === -1) {
+	            return false;
+	          }
+	        }
+
+	        // Check whether droping is disabled completely
+	        if (attr.dndDisableIf && scope.$eval(attr.dndDisableIf)) return false;
+
+	        return true;
+	      }
+
+	      /**
+	       * Small helper function that cleans up if we aborted a drop.
+	       */
+	      function stopDragover() {
+	        placeholder.remove();
+	        element.removeClass("dndDragover");
+	        return true;
+	      }
+
+	      /**
+	       * Invokes a callback with some interesting parameters and returns the callbacks return value.
+	       */
+	      function invokeCallback(expression, event, index, item) {
+	        return $parse(expression)(scope, {
+	          event: event,
+	          index: index,
+	          item: item || undefined,
+	          external: !dndDragTypeWorkaround.isDragging,
+	          type: dndDragTypeWorkaround.isDragging ? dndDragTypeWorkaround.dragType : undefined
+	        });
+	      }
+
+	      /**
+	       * Check if the dataTransfer object contains a drag type that we can handle. In old versions
+	       * of IE the types collection will not even be there, so we just assume a drop is possible.
+	       */
+	      function hasTextMimetype(types) {
+	        if (!types) return true;
+	        for (var i = 0; i < types.length; i++) {
+	          if (types[i] === "Text" || types[i] === "text/plain") return true;
+	        }
+
+	        return false;
+	      }
+	    };
+	  }])
+
+	  /**
+	   * Use the dnd-nodrag attribute inside of dnd-draggable elements to prevent them from starting
+	   * drag operations. This is especially useful if you want to use input elements inside of
+	   * dnd-draggable elements or create specific handle elements. Note: This directive does not work
+	   * in Internet Explorer 9.
+	   */
+	  .directive('dndNodrag', function() {
+	    return function(scope, element, attr) {
+	      // Set as draggable so that we can cancel the events explicitly
+	      element.attr("draggable", "true");
+
+	      /**
+	       * Since the element is draggable, the browser's default operation is to drag it on dragstart.
+	       * We will prevent that and also stop the event from bubbling up.
+	       */
+	      element.on('dragstart', function(event) {
+	        event = event.originalEvent || event;
+
+	        if (!event._dndHandle) {
+	          // If a child element already reacted to dragstart and set a dataTransfer object, we will
+	          // allow that. For example, this is the case for user selections inside of input elements.
+	          if (!(event.dataTransfer.types && event.dataTransfer.types.length)) {
+	            event.preventDefault();
+	          }
+	          event.stopPropagation();
+	        }
+	      });
+
+	      /**
+	       * Stop propagation of dragend events, otherwise dnd-moved might be triggered and the element
+	       * would be removed.
+	       */
+	      element.on('dragend', function(event) {
+	        event = event.originalEvent || event;
+	        if (!event._dndHandle) {
+	          event.stopPropagation();
+	        }
+	      });
+	    };
+	  })
+
+	  /**
+	   * Use the dnd-handle directive within a dnd-nodrag element in order to allow dragging with that
+	   * element after all. Therefore, by combining dnd-nodrag and dnd-handle you can allow
+	   * dnd-draggable elements to only be dragged via specific "handle" elements. Note that Internet
+	   * Explorer will show the handle element as drag image instead of the dnd-draggable element. You
+	   * can work around this by styling the handle element differently when it is being dragged. Use
+	   * the CSS selector .dndDragging:not(.dndDraggingSource) [dnd-handle] for that.
+	   */
+	  .directive('dndHandle', function() {
+	    return function(scope, element, attr) {
+	      element.attr("draggable", "true");
+
+	      element.on('dragstart dragend', function(event) {
+	        event = event.originalEvent || event;
+	        event._dndHandle = true;
+	      });
+	    };
+	  })
+
+	  /**
+	   * This workaround handles the fact that Internet Explorer does not support drag types other than
+	   * "Text" and "URL". That means we can not know whether the data comes from one of our elements or
+	   * is just some other data like a text selection. As a workaround we save the isDragging flag in
+	   * here. When a dropover event occurs, we only allow the drop if we are already dragging, because
+	   * that means the element is ours.
+	   */
+	  .factory('dndDragTypeWorkaround', function(){ return {} })
+
+	  /**
+	   * Chrome on Windows does not set the dropEffect field, which we need in dragend to determine
+	   * whether a drag operation was successful. Therefore we have to maintain it in this global
+	   * variable. The bug report for that has been open for years:
+	   * https://code.google.com/p/chromium/issues/detail?id=39399
+	   */
+	  .factory('dndDropEffectWorkaround', function(){ return {} });
+
+
+/***/ },
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -41359,7 +41963,7 @@
 	                                                               .service('mainService', mainService);*/
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -41372,9 +41976,17 @@
 
 	var _angular2 = _interopRequireDefault(_angular);
 
-	var _todoComponent = __webpack_require__(10);
+	var _todoComponent = __webpack_require__(7);
 
 	var _todoComponent2 = _interopRequireDefault(_todoComponent);
+
+	var _settingTodoComponent = __webpack_require__(9);
+
+	var _settingTodoComponent2 = _interopRequireDefault(_settingTodoComponent);
+
+	var _listTodoComponent = __webpack_require__(11);
+
+	var _listTodoComponent2 = _interopRequireDefault(_listTodoComponent);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -41382,18 +41994,14 @@
 	import todoView from './view.todo.component.js';
 	import todoDelete from './delete.todo.component.js';
 	*/
-	exports.default = _angular2.default.module('app.board', []).component('todoElem', _todoComponent2.default); /*
-	                                                                                                            .component('todoList', todoList)
-	                                                                                                            .component('todoAdd', todoAdd)
-	                                                                                                            .component('todoView', todoView)
-	                                                                                                            .component('todoDelete', todoDelete);*/
+	exports.default = _angular2.default.module('app.board', []).component('todoElem', _todoComponent2.default).component('settingTodo', _settingTodoComponent2.default).component('listTodo', _listTodoComponent2.default); /*
+	                                                                                                                                                                                                                        .component('todoList', todoList)
+	                                                                                                                                                                                                                        .component('todoAdd', todoAdd)
+	                                                                                                                                                                                                                        .component('todoView', todoView)
+	                                                                                                                                                                                                                        .component('todoDelete', todoDelete);*/
 
 /***/ },
-/* 6 */,
-/* 7 */,
-/* 8 */,
-/* 9 */,
-/* 10 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -41406,22 +42014,24 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var template = __webpack_require__(11);
+	var template = __webpack_require__(8);
 
 	'use strict';
 
 	var Todo = function () {
 	  function Todo() {
-	    _classCallCheck(this, Todo);
+	    /*this.object = {};
+	     this.object.header = "Название задания";
+	     this.object.time = "10:23";
+	     this.object.serves = 2;*/
 
-	    this.textTask = "this task";
-	    this.timeEnd = "12.02";
+	    _classCallCheck(this, Todo);
 	  }
 
 	  _createClass(Todo, [{
-	    key: 'showWindow',
-	    value: function showWindow() {
-	      alert("nothing");
+	    key: 'show',
+	    value: function show() {
+	      this.showSetting({ 'obj': this.object });
 	    }
 	  }]);
 
@@ -41431,15 +42041,241 @@
 	exports.default = {
 	  template: template,
 	  controller: Todo,
-	  comtrollerAs: "Todo",
+	  bindings: {
+	    object: '<',
+	    showSetting: '&'
+	  }
+	};
+
+/***/ },
+/* 8 */
+/***/ function(module, exports) {
+
+	module.exports = "<div class=\"panel panel-primary\" ng-click=\"$ctrl.show()\">\r\n\t<div class=\"panel-heading\" ng-bind=\"$ctrl.object.header\"></div>\r\n\t<div class=\"panel-footer small\">\r\n\t\t<table cols='2' width='100%'><tr>\r\n\t \t  <td class=\"col-md-6\" ng-bind=\"$ctrl.object.time\"></td>\r\n\t  \t<td class=\"col-md-6 text-right\" ng-bind=\"'Выполняет '+$ctrl.object.serves+' чел.'\"></td>\r\n\t  <tr></table>\r\n\t</div>\r\n</div>";
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var template = __webpack_require__(10);
+
+	'use strict';
+
+	var SettingTodo = function () {
+	  function SettingTodo() {
+	    _classCallCheck(this, SettingTodo);
+
+	    this.object = {};
+	    this.object.header = "this task";
+	    this.object.description = "adasdasdasdasd";
+	    this.object.time = "10.20.30";
+	    this.object.serves = 0;
+
+	    this.object.users = {};
+	    this.object.users[0] = { "name": "Andre", 'id': 0 };
+	    this.object.users[1] = { "name": "John", 'id': 1 };
+	    this.object.users[2] = { "name": "Tim", 'id': 2 };
+
+	    this.allUsers = [];
+	    this.allUsers[0] = { "name": "Andre", 'id': 0 };
+	    this.allUsers[1] = { "name": "John", 'id': 1 };
+	    this.allUsers[2] = { "name": "Tim", 'id': 2 };
+	    this.allUsers[3] = { "name": "Tommi", 'id': 3 };
+	    this.allUsers[4] = { "name": "Mikl", 'id': 4 };
+
+	    for (var user in this.object.users) {
+	      this.object.serves++;
+	    }
+	  }
+
+	  _createClass(SettingTodo, [{
+	    key: 'showWindow',
+	    value: function showWindow() {
+	      alert("nothing");
+	    }
+	  }, {
+	    key: 'deleteUser',
+	    value: function deleteUser(id) {
+	      delete this.object.users[id];
+	      this.object.serves--;
+	    }
+	  }, {
+	    key: 'appendUser',
+	    value: function appendUser(id) {
+	      if (!this.object.users[id]) this.object.serves++;
+	      this.object.users[id] = this.allUsers[id];
+	    }
+	  }]);
+
+	  return SettingTodo;
+	}();
+
+	exports.default = {
+	  template: template,
+	  controller: SettingTodo,
 	  bindings: {}
 	};
 
 /***/ },
-/* 11 */
+/* 10 */
 /***/ function(module, exports) {
 
-	module.exports = "<div ng-click=\"$ctrl.showWindow()\">\r\n\t<div ng-bind=\"$ctrl.textTask\"></div>\r\n\t<div ng-bind=\"$ctrl.timeEnd\"></div>\r\n</div>";
+	module.exports = "<div>\r\n  <div class=\"text-right\"><button type=\"button\" class=\"btn btn-default btn-sm\">close</button></div>\r\n  <div class=\"panel panel-default\">\r\n    <div class=\"panel-heading\">Заголовок</div>\r\n  \t<input class=\"form-control\" type=\"text\" ng-model=\"$ctrl.object.header\">\r\n  </div>\r\n  <div class=\"panel panel-default\">\r\n     <div class=\"panel-heading\">Описание</div>\r\n  \t<textarea class=\"form-control\" ng-model=\"$ctrl.object.description\"></textarea>\r\n  </div>\r\n  <div class=\"panel panel-default\">\r\n     <div class=\"panel-heading\">Время</div>\r\n  \t<input class=\"form-control\" type=\"text\" ng-model=\"$ctrl.object.time\"></textarea>\r\n  </div>\r\n  <div class=\"panel panel-default\">\r\n  \t <div class=\"panel-heading\">Участники</div>\r\n  \t<ul class=\"list-inline\">\r\n  \t\t<li ng-repeat=\"user in $ctrl.object.users\">\r\n  \t\t\t<span ng-bind=\"user.name\"></span>\r\n  \t\t</li>\r\n  \t</ul>\r\n\t\t\r\n\t\t<button type=\"button\" class=\"btn btn-default btn-xs\" ng-init=\"changeUser=false\" ng-click=\"changeUser = !changeUser\">изменить</button>\r\n\t\t<div ng-if=\"changeUser\">\r\n\t\t\t<div class=\"panel panel-danger small\">\r\n\t\t\t\t<div class=\"panel-heading\">Удалить</div>\r\n\t\t\t\t<ul class=\"list-inline\">\r\n\t\t\t\t\t<li ng-repeat=\"user in $ctrl.object.users\">\r\n\t\t\t\t\t\t<span class=\"text-danger\" ng-bind=\"user.name\" ng-click=\"$ctrl.deleteUser(user.id)\"></span>\r\n\t\t\t\t\t</li>\r\n\t\t\t\t</ul>\r\n\t\t\t</div>\r\n\t\t\t<div class=\"panel panel-success small\">\r\n\t\t\t\t<div class=\"panel-heading\">Добавить</div>\r\n\t\t\t\t<ul class=\"list-inline\">\r\n\t\t\t\t\t<li ng-repeat=\"user in $ctrl.allUsers\">\r\n\t\t\t\t\t\t<span class=\"text-success\" ng-bind=\"user.name\" ng-click=\"$ctrl.appendUser(user.id)\"></span>\r\n\t\t\t\t\t</li>\r\n\t\t\t\t</ul>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\r\n  </div>\r\n</div>";
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var template = __webpack_require__(12);
+
+	'use strict';
+
+	var ListTodo = function () {
+	  function ListTodo() {
+	    _classCallCheck(this, ListTodo);
+
+	    //this.object = {};
+	    this.textNewTodo = "";
+	    this.showAddTodo = false;
+
+	    /*this.object.header = "list 1";
+	    var list = this.object.listTodo = [];
+	    list.push({'header': 'text header',
+	               'description': 'text desc',
+	               'time': '12:45',
+	               'serves':2,
+	               'users':[
+	                        {'name':'alex', 'id':0},
+	                        {'name':'karl', 'id':1}
+	                       ]
+	    });*/
+	  }
+
+	  _createClass(ListTodo, [{
+	    key: 'appendNewTodo',
+	    value: function appendNewTodo() {
+	      if (this.textNewTodo) {
+	        this.object.listTodo.push(this.newTodo(this.textNewTodo));
+	        this.textNewTodo = "";
+	        this.showAddTodo = !this.showAddTodo;
+	      }
+	    }
+	  }, {
+	    key: 'deleteTodo',
+	    value: function deleteTodo(index) {
+	      if (confirm("Вы действительно этотите удалить элемент '" + this.object.listTodo[index].header + "'?")) {
+	        this.object.listTodo.splice(index, 1);
+	      }
+	    }
+	  }, {
+	    key: 'newTodo',
+	    value: function newTodo(text) {
+	      var obj = {};
+	      obj.header = text;
+	      obj.description = "";
+	      obj.time = "";
+	      obj.serves = 0;
+	      obj.users = [];
+	      return obj;
+	    }
+	  }]);
+
+	  return ListTodo;
+	}();
+
+	exports.default = {
+	  template: template,
+	  controller: ListTodo,
+	  bindings: {
+	    object: '<'
+	  }
+	};
+
+/***/ },
+/* 12 */
+/***/ function(module, exports) {
+
+	module.exports = "<div class=\"panel panel-success\">\r\n\t<div class=\"panel-heading\" ng-bind=\"$ctrl.object.header\"></div>\r\n\t<ul class=\"panel-body advancedDemo\"\r\n\t\t\t  dnd-list=\"$ctrl.object.listTodo\"\r\n        dnd-allowed-types=\"['itemType']\"\r\n\t      dnd-horizontal-list=\"true\"\r\n\t      dnd-external-sources=\"true\"\r\n\t      dnd-dragover=\"true\"\r\n\t      dnd-drop=\"item\">\r\n\r\n\t  <li  ng-repeat=\"todo in $ctrl.object.listTodo\"\r\n\t\t\t    dnd-draggable=\"todo\"\r\n          dnd-type=\"'itemType'\"\r\n          dnd-effect-allowed=\"copyMove\"\r\n          dnd-moved=\"$ctrl.object.listTodo.splice($index, 1)\">\r\n\r\n\t  \t<div class=\"text-right small\"><span ng-click=\"$ctrl.deleteTodo($index)\">удалить</span></div>\r\n\t  \t<todo-elem object='todo'></todo-elem>\r\n\t  </li>\r\n\r\n\t  <div ng-if=\"!$ctrl.showAddTodo\">\r\n\t  \t<button type=\"button\" class=\"btn btn-default btn-xs\" ng-click=\"$ctrl.showAddTodo = !$ctrl.showAddTodo\">Добавить задачу</button>\r\n  \t</div>\r\n  \t<div class=\"text-left\" ng-if=\"$ctrl.showAddTodo\">\r\n  \t\t<input class=\"form-control\" type=\"text\" ng-model=\"$ctrl.textNewTodo\">\r\n  \t\t<button type=\"button\" class=\"btn btn-default btn-sm\" ng-click=\"$ctrl.appendNewTodo()\">Добавить</button>\r\n  \t\t<button type=\"button\" class=\"btn btn-default btn-sm\" ng-click=\"$ctrl.showAddTodo = !$ctrl.showAddTodo\">X</button>\r\n  \t</div>\r\n\r\n\t</ul>\r\n</div>";
+
+/***/ },
+/* 13 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var ViewController = function () {
+	  //static get $inject(){ return ['mainService']; };
+
+	  function ViewController() {
+	    _classCallCheck(this, ViewController);
+
+	    this.object = [];
+	    this.selectedTodo = {};
+	    this.viewSetting = false;
+	    this.showAddList = false;
+	    this.textNewList = "";
+
+	    this.object.push(this.newList('Новые задачи'));
+	    this.object.push(this.newList('Выполняемые задачи'));
+	  }
+
+	  _createClass(ViewController, [{
+	    key: 'showSetting',
+	    value: function showSetting(obj) {
+	      this.selectedTodo = obj;
+	      this.viewSetting = true;
+	    }
+	  }, {
+	    key: 'appendNewList',
+	    value: function appendNewList() {
+	      if (this.textNewList) {
+	        this.object.push(this.newList(this.textNewList));
+	        this.textNewList = "";
+	        this.showAddList = !this.showAddList;
+	      }
+	    }
+	  }, {
+	    key: 'newList',
+	    value: function newList(text) {
+	      var obj = {};
+	      obj.header = text;
+	      obj.listTodo = [];
+	      return obj;
+	    }
+	  }]);
+
+	  return ViewController;
+	}();
+
+	exports.default = ViewController;
 
 /***/ }
 /******/ ]);

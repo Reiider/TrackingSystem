@@ -1,23 +1,25 @@
-﻿var template = require('html!./todo.template.html');
+var template = require('html!./todo.template.html');
 
 'use strict'
 
 class Todo{
   constructor(){
-  	this.textTask="this task";
-  	this.timeEnd = "12.02";
+  	/*this.object = {};
+    this.object.header = "Название задания";
+    this.object.time = "10:23";
+    this.object.serves = 2;*/
   }
 
-  showWindow(){
-  	alert("nothing");
+  show(){
+  	this.showSetting({'obj': this.object})
   }
 }
 
 export default {
   template,
   controller: Todo,
-  comtrollerAs: "Todo",
   bindings:{
-
+    object: '<',
+  	showSetting:'&'
   }
 };

@@ -1,0 +1,44 @@
+﻿<div>
+  <div class="text-right"><button type="button" class="btn btn-default btn-sm">close</button></div>
+  <div class="panel panel-default">
+    <div class="panel-heading">Заголовок</div>
+  	<input class="form-control" type="text" ng-model="$ctrl.object.header">
+  </div>
+  <div class="panel panel-default">
+     <div class="panel-heading">Описание</div>
+  	<textarea class="form-control" ng-model="$ctrl.object.description"></textarea>
+  </div>
+  <div class="panel panel-default">
+     <div class="panel-heading">Время</div>
+  	<input class="form-control" type="text" ng-model="$ctrl.object.time"></textarea>
+  </div>
+  <div class="panel panel-default">
+  	 <div class="panel-heading">Участники</div>
+  	<ul class="list-inline">
+  		<li ng-repeat="user in $ctrl.object.users">
+  			<span ng-bind="user.name"></span>
+  		</li>
+  	</ul>
+		
+		<button type="button" class="btn btn-default btn-xs" ng-init="changeUser=false" ng-click="changeUser = !changeUser">изменить</button>
+		<div ng-if="changeUser">
+			<div class="panel panel-danger small">
+				<div class="panel-heading">Удалить</div>
+				<ul class="list-inline">
+					<li ng-repeat="user in $ctrl.object.users">
+						<span class="text-danger" ng-bind="user.name" ng-click="$ctrl.deleteUser(user.id)"></span>
+					</li>
+				</ul>
+			</div>
+			<div class="panel panel-success small">
+				<div class="panel-heading">Добавить</div>
+				<ul class="list-inline">
+					<li ng-repeat="user in $ctrl.allUsers">
+						<span class="text-success" ng-bind="user.name" ng-click="$ctrl.appendUser(user.id)"></span>
+					</li>
+				</ul>
+			</div>
+		</div>
+
+  </div>
+</div>

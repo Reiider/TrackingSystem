@@ -2,18 +2,32 @@
 <html ng-app="app">
 	<head>
 	<meta charset="utf-8">
-		<title>createTextNode example</title>
+		<title>Tracking System</title>
 		<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="css/bootstrap-theme.min.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
 	</head>
 
-	<body>
-    <div>
-    What is it?
+	<body ng-controller="ViewController as View">
+    <div class="boardInterior">
+      <div class="board boardInterior" ng-class="{click: View.viewSetting}">
+        <div class="inlineBlock"><list-todo class="listTodo " ng-repeat="list in View.object" object="list"></list-todo></div>
+        <div class="inlineBlock listTodo">
+
+          <div ng-if="!View.showAddList">
+            <button type="button" class="btn btn-default btn-xs" ng-click="View.showAddList = !View.showAddList">Добавить список</button>
+          </div>
+          <div class="text-left" ng-if="View.showAddList">
+            <input class="form-control" type="text" ng-model="View.textNewList">
+            <button type="button" class="btn btn-default btn-sm" ng-click="View.appendNewList()">Добавить</button>
+            <button type="button" class="btn btn-default btn-sm" ng-click="View.showAddList = !View.showAddList">X</button>
+          </div>
+
+        </div>
+      </div>
     </div>
-  	
-  	<div>
-  		<todo-elem></todo-elem>
+  	<div class="settingTodo" ng-class="{click: View.viewSetting}">
+  		
   	</div>
 
   	<script src="bundle.js"></script>

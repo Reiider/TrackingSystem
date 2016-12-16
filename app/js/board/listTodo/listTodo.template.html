@@ -1,0 +1,31 @@
+﻿<div class="panel panel-success">
+	<div class="panel-heading" ng-bind="$ctrl.object.header"></div>
+	<ul class="panel-body advancedDemo"
+			  dnd-list="$ctrl.object.listTodo"
+        dnd-allowed-types="['itemType']"
+	      dnd-horizontal-list="true"
+	      dnd-external-sources="true"
+	      dnd-dragover="true"
+	      dnd-drop="item">
+
+	  <li  ng-repeat="todo in $ctrl.object.listTodo"
+			    dnd-draggable="todo"
+          dnd-type="'itemType'"
+          dnd-effect-allowed="copyMove"
+          dnd-moved="$ctrl.object.listTodo.splice($index, 1)">
+
+	  	<div class="text-right small"><span ng-click="$ctrl.deleteTodo($index)">удалить</span></div>
+	  	<todo-elem object='todo'></todo-elem>
+	  </li>
+
+	  <div ng-if="!$ctrl.showAddTodo">
+	  	<button type="button" class="btn btn-default btn-xs" ng-click="$ctrl.showAddTodo = !$ctrl.showAddTodo">Добавить задачу</button>
+  	</div>
+  	<div class="text-left" ng-if="$ctrl.showAddTodo">
+  		<input class="form-control" type="text" ng-model="$ctrl.textNewTodo">
+  		<button type="button" class="btn btn-default btn-sm" ng-click="$ctrl.appendNewTodo()">Добавить</button>
+  		<button type="button" class="btn btn-default btn-sm" ng-click="$ctrl.showAddTodo = !$ctrl.showAddTodo">X</button>
+  	</div>
+
+	</ul>
+</div>
