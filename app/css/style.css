@@ -1,10 +1,6 @@
-.board{
-  width:100%;
-}
 .boardInterior{
     width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow: auto;
     display: table;
     white-space: nowrap; 
 }
@@ -13,14 +9,25 @@
   white-space: normal; 
   vertical-align: top;
 }
+.board{
+  width: 100%;
+  overflow: auto; 
+}
 .board.click{
-  width:68%;
+  width: 75%;
 }
 .settingTodo{
-  width:0%;
+  display: none;
 }
+
 .settingTodo.click{
-  width:28%;
+  position: absolute;
+  width:25%;
+  top:0px;
+  right: 0px;
+  display: block;
+  overflow: auto;
+  background-color: #ddd;
 }
 .listTodoDnd, .listTodoDnd > li {
     position: relative;
@@ -35,7 +42,7 @@
 .listTodo{
   float:left;
 
-  width:350px;
+  width:300px;
   margin-top: 10px;
   margin-left: 10px;
   margin-right: 10px;
@@ -48,15 +55,10 @@
 .dndDraggingSource {
   display: none;
 }
-.listTodoDnd .dndPlaceholder {
-    background-color: #ddd !important;
-    min-height: 30px;
-    display: inline-block;
-}
 
-.boardDnd .dndPlaceholder {
+.dndPlaceholder {
     background-color: #ddd !important;
-    width: 318px;
+    width: 268px;
     min-height: 40px;
     margin-top: 11px;
     display: inline-block;

@@ -1,5 +1,9 @@
 ﻿<div class="panel panel-success">
-	<div class="panel-heading" ng-bind="$ctrl.object.header"></div>
+	<div ng-if="!$ctrl.showRename" class="panel-heading" ng-bind="$ctrl.object.header" ng-click="$ctrl.showRename = !$ctrl.showRename"></div>
+  <div ng-if="$ctrl.showRename" class="panel-heading form-inline">
+    <input type="text" class="form-control" ng-model="$ctrl.object.header">
+    <button type="button" class="btn btn-success btn-xs" ng-click="$ctrl.showRename = !$ctrl.showRename">OK</button>
+  </div>
 	<ul class="panel-body listTodoDnd"
 			  dnd-list="$ctrl.object.listTodo"
         dnd-allowed-types="['itemType']"
@@ -10,7 +14,7 @@
 			    dnd-draggable="todo"
           dnd-type="'itemType'"
           dnd-effect-allowed="copyMove"
-          dnd-moved="$ctrl.object.listTodo.splice($index, 1)">
+          dnd-moved="$ctrl.moved($index)">
       
   		<div ng-if="!$ctrl.showDelete[$index]" class="text-right small">
   			<span ng-click="$ctrl.showDelete[$index] = !$ctrl.showDelete[$index]">удалить задачу</span>
@@ -21,7 +25,7 @@
   			  <td class="text-right"><button type="button" class="btn btn-danger btn-xs" ng-click="$ctrl.showDelete[$index] = !$ctrl.showDelete[$index]">отмена</button></td>
         </tr>
   		</table>
-	  	<todo-elem showSetting="$ctrl.showSet(obj)" object='todo'></todo-elem>
+	  	<todo-elem object='todo'></todo-elem>
 	  </li>
   </ul>
 

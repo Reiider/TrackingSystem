@@ -1,12 +1,13 @@
 'use strict'
 
 class ViewController{
-  //static get $inject(){ return ['mainService']; };
+  static get $inject(){ return ['mainService']; };
 
-  constructor(){
-  	this.object = [];
-  	this.selectedTodo = {};
-    this.viewSetting = false;
+  constructor(mainService){
+    this.mainService = mainService;
+
+  	this.object = mainService.getList();
+  	this.setting = mainService.getSetting();
     this.showAddList = false;
     this.showDelete = [];
     this.textNewList = "";
@@ -14,11 +15,6 @@ class ViewController{
     this.object.push(this.newList('Новые задачи'));
     this.object.push(this.newList('Выполняемые задачи'));
 
-  }
-
-  showSetting(obj){
-  	this.selectedTodo = obj;
-  	this.viewSetting = true;
   }
 
   appendNewList(){
@@ -38,10 +34,6 @@ class ViewController{
 
   deleteList(index){
     this.object.splice(index,1);
-  }
-
-  showSetting(obj){
-    
   }
 }
 

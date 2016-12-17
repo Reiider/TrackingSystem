@@ -3,23 +3,14 @@ var template = require('html!./listTodo.template.html');
 'use strict'
 
 class ListTodo{
-  constructor(){
-    //this.object = {};
+  static get $inject(){ return ['mainService']; };
+
+  constructor(mainService){
+    this.mainService = mainService;
     this.textNewTodo = "";
     this.showAddTodo = false;
+    this.showRename = false;
     this.showDelete=[];
-
-    /*this.object.header = "list 1";
-    var list = this.object.listTodo = [];
-    list.push({'header': 'text header',
-               'description': 'text desc',
-               'time': '12:45',
-               'serves':2,
-               'users':[
-                        {'name':'alex', 'id':0},
-                        {'name':'karl', 'id':1}
-                       ]
-    });*/
   }
 
   appendNewTodo(){
@@ -44,8 +35,9 @@ class ListTodo{
     return obj;
   }
 
-  showSet(obj){
-    this.showSetting({'obj':obj});
+  moved(index){
+    this.object.listTodo.splice(index, 1);
+    this.mainService.setSetting(null, false);
   }
 }
 
@@ -53,7 +45,6 @@ export default {
   template,
   controller: ListTodo,
   bindings:{
-    object:'<',
-    showSetting: '&'
+    object:'<'
   }
 };

@@ -9,7 +9,7 @@
 	</head>
 
 	<body ng-controller="ViewController as View">
-    <div class="board" ng-class="{click: View.viewSetting}">
+    <div class="board" ng-class="{click: View.setting.viewSetting}">
       <ul class="boardInterior boardDnd"
           dnd-list="View.object"
           dnd-allowed-types="['containerType']"
@@ -23,7 +23,7 @@
               dnd-effect-allowed="copyMove"
               dnd-moved="View.object.splice($index, 1)">
            
-              <list-todo class="listTodo" object="list" showSetting="View.showSetting(obj)"></list-todo>
+              <list-todo class="listTodo" object="list"></list-todo>
               <div ng-if="!View.showDelete[$index]" class="text-center small">
                 <span ng-click="View.showDelete[$index] = !View.showDelete[$index]">удалить список</span>
               </div>
@@ -53,8 +53,8 @@
         </li>
       </ul>
     </div>
-  	<div class="settingTodo" ng-class="{click: View.viewSetting}">
-  		
+  	<div class="settingTodo" ng-class="{click: View.setting.viewSetting}">
+  		<setting-todo object="View.setting.selectedTodo"></setting-todo>
   	</div>
 
   	<script src="bundle.js"></script>

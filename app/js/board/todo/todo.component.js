@@ -3,15 +3,16 @@ var template = require('html!./todo.template.html');
 'use strict'
 
 class Todo{
-  constructor(){
-  	/*this.object = {};
-    this.object.header = "Название задания";
-    this.object.time = "10:23";
-    this.object.serves = 2;*/
+  static get $inject(){ return ['mainService']; };
+
+  constructor(mainService){
+    this.mainService = mainService;
+
+  	this.object = {};
   }
 
-  show(){
-  	this.showSetting({'obj': this.object})
+  showSetting(){
+    this.mainService.setSetting(this.object, true);
   }
 }
 
@@ -19,7 +20,6 @@ export default {
   template,
   controller: Todo,
   bindings:{
-    object: '<',
-  	showSetting:'&'
+    object: '<'
   }
 };

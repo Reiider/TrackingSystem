@@ -41952,15 +41952,13 @@
 
 	var _angular2 = _interopRequireDefault(_angular);
 
+	var _mainService = __webpack_require__(14);
+
+	var _mainService2 = _interopRequireDefault(_mainService);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	/*
-	import loaderService from './loader.service.js';
-	import mainService from './main.service.js';
-	*/
-	exports.default = _angular2.default.module('app.service', []); /*
-	                                                               .service('loaderService', loaderService)
-	                                                               .service('mainService', mainService);*/
+	exports.default = _angular2.default.module('app.service', []).service('mainService', _mainService2.default);
 
 /***/ },
 /* 6 */
@@ -42019,19 +42017,25 @@
 	'use strict';
 
 	var Todo = function () {
-	  function Todo() {
-	    /*this.object = {};
-	     this.object.header = "Название задания";
-	     this.object.time = "10:23";
-	     this.object.serves = 2;*/
+	  _createClass(Todo, null, [{
+	    key: '$inject',
+	    get: function get() {
+	      return ['mainService'];
+	    }
+	  }]);
 
+	  function Todo(mainService) {
 	    _classCallCheck(this, Todo);
+
+	    this.mainService = mainService;
+
+	    this.object = {};
 	  }
 
 	  _createClass(Todo, [{
-	    key: 'show',
-	    value: function show() {
-	      this.showSetting({ 'obj': this.object });
+	    key: 'showSetting',
+	    value: function showSetting() {
+	      this.mainService.setSetting(this.object, true);
 	    }
 	  }]);
 
@@ -42042,8 +42046,7 @@
 	  template: template,
 	  controller: Todo,
 	  bindings: {
-	    object: '<',
-	    showSetting: '&'
+	    object: '<'
 	  }
 	};
 
@@ -42051,7 +42054,7 @@
 /* 8 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"panel panel-primary\" ng-click=\"$ctrl.show()\">\r\n\t<div class=\"panel-heading\" ng-bind=\"$ctrl.object.header\"></div>\r\n\t<div class=\"panel-footer small\">\r\n\t\t<table width='100%'><tr>\r\n\t \t  <td ng-bind=\"$ctrl.object.time\"></td>\r\n\t  \t<td class=\"text-right\" ng-bind=\"'Выполняет '+$ctrl.object.serves+' чел.'\"></td>\r\n\t  <tr></table>\r\n\t</div>\r\n</div>";
+	module.exports = "<div class=\"panel panel-primary\" ng-click=\"$ctrl.showSetting()\">\r\n\t<div class=\"panel-heading\" ng-bind=\"$ctrl.object.header\"></div>\r\n\t<div class=\"panel-footer small\">\r\n\t\t<table width='100%'><tr>\r\n\t \t  <td ng-bind=\"$ctrl.object.time\"></td>\r\n\t  \t<td class=\"text-right\" ng-bind=\"'Выполняет '+$ctrl.object.serves+' чел.'\"></td>\r\n\t  <tr></table>\r\n\t</div>\r\n</div>";
 
 /***/ },
 /* 9 */
@@ -42072,30 +42075,19 @@
 	'use strict';
 
 	var SettingTodo = function () {
-	  function SettingTodo() {
+	  _createClass(SettingTodo, null, [{
+	    key: '$inject',
+	    get: function get() {
+	      return ['mainService'];
+	    }
+	  }]);
+
+	  function SettingTodo(mainService) {
 	    _classCallCheck(this, SettingTodo);
 
-	    this.object = {};
-	    this.object.header = "this task";
-	    this.object.description = "adasdasdasdasd";
-	    this.object.time = "10.20.30";
-	    this.object.serves = 0;
+	    this.mainService = mainService;
 
-	    this.object.users = {};
-	    this.object.users[0] = { "name": "Andre", 'id': 0 };
-	    this.object.users[1] = { "name": "John", 'id': 1 };
-	    this.object.users[2] = { "name": "Tim", 'id': 2 };
-
-	    this.allUsers = [];
-	    this.allUsers[0] = { "name": "Andre", 'id': 0 };
-	    this.allUsers[1] = { "name": "John", 'id': 1 };
-	    this.allUsers[2] = { "name": "Tim", 'id': 2 };
-	    this.allUsers[3] = { "name": "Tommi", 'id': 3 };
-	    this.allUsers[4] = { "name": "Mikl", 'id': 4 };
-
-	    for (var user in this.object.users) {
-	      this.object.serves++;
-	    }
+	    this.users = mainService.getUsers();
 	  }
 
 	  _createClass(SettingTodo, [{
@@ -42106,14 +42098,27 @@
 	  }, {
 	    key: 'deleteUser',
 	    value: function deleteUser(id) {
-	      delete this.object.users[id];
+	      this.object.users.splice(id, 1);
 	      this.object.serves--;
 	    }
 	  }, {
 	    key: 'appendUser',
 	    value: function appendUser(id) {
-	      if (!this.object.users[id]) this.object.serves++;
-	      this.object.users[id] = this.allUsers[id];
+	      var is = false;
+	      for (var i = 0; i < this.object.users.length; i++) {
+	        if (this.object.users[i].id === this.users[id].id) {
+	          is = true;
+	        }
+	      }
+	      if (!is) {
+	        this.object.serves++;
+	        this.object.users.push(this.users[id]);
+	      }
+	    }
+	  }, {
+	    key: 'close',
+	    value: function close() {
+	      this.mainService.setSetting(null, false);
 	    }
 	  }]);
 
@@ -42123,14 +42128,16 @@
 	exports.default = {
 	  template: template,
 	  controller: SettingTodo,
-	  bindings: {}
+	  bindings: {
+	    object: '<'
+	  }
 	};
 
 /***/ },
 /* 10 */
 /***/ function(module, exports) {
 
-	module.exports = "<div>\r\n  <div class=\"text-right\"><button type=\"button\" class=\"btn btn-default btn-sm\">close</button></div>\r\n  <div class=\"panel panel-default\">\r\n    <div class=\"panel-heading\">Заголовок</div>\r\n  \t<input class=\"form-control\" type=\"text\" ng-model=\"$ctrl.object.header\">\r\n  </div>\r\n  <div class=\"panel panel-default\">\r\n     <div class=\"panel-heading\">Описание</div>\r\n  \t<textarea class=\"form-control\" ng-model=\"$ctrl.object.description\"></textarea>\r\n  </div>\r\n  <div class=\"panel panel-default\">\r\n     <div class=\"panel-heading\">Время</div>\r\n  \t<input class=\"form-control\" type=\"text\" ng-model=\"$ctrl.object.time\"></textarea>\r\n  </div>\r\n  <div class=\"panel panel-default\">\r\n  \t <div class=\"panel-heading\">Участники</div>\r\n  \t<ul class=\"list-inline\">\r\n  \t\t<li ng-repeat=\"user in $ctrl.object.users\">\r\n  \t\t\t<span ng-bind=\"user.name\"></span>\r\n  \t\t</li>\r\n  \t</ul>\r\n\t\t\r\n\t\t<button type=\"button\" class=\"btn btn-default btn-xs\" ng-init=\"changeUser=false\" ng-click=\"changeUser = !changeUser\">изменить</button>\r\n\t\t<div ng-if=\"changeUser\">\r\n\t\t\t<div class=\"panel panel-danger small\">\r\n\t\t\t\t<div class=\"panel-heading\">Удалить</div>\r\n\t\t\t\t<ul class=\"list-inline\">\r\n\t\t\t\t\t<li ng-repeat=\"user in $ctrl.object.users\">\r\n\t\t\t\t\t\t<span class=\"text-danger\" ng-bind=\"user.name\" ng-click=\"$ctrl.deleteUser(user.id)\"></span>\r\n\t\t\t\t\t</li>\r\n\t\t\t\t</ul>\r\n\t\t\t</div>\r\n\t\t\t<div class=\"panel panel-success small\">\r\n\t\t\t\t<div class=\"panel-heading\">Добавить</div>\r\n\t\t\t\t<ul class=\"list-inline\">\r\n\t\t\t\t\t<li ng-repeat=\"user in $ctrl.allUsers\">\r\n\t\t\t\t\t\t<span class=\"text-success\" ng-bind=\"user.name\" ng-click=\"$ctrl.appendUser(user.id)\"></span>\r\n\t\t\t\t\t</li>\r\n\t\t\t\t</ul>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\r\n  </div>\r\n</div>";
+	module.exports = "<div>\r\n  <div class=\"text-right\"><button type=\"button\" class=\"btn btn-default btn-sm\" ng-click=\"$ctrl.close()\">закрыть</button></div>\r\n  <div class=\"panel panel-default\">\r\n    <div class=\"panel-heading\">Заголовок</div>\r\n  \t<input class=\"form-control\" type=\"text\" ng-model=\"$ctrl.object.header\">\r\n  </div>\r\n  <div class=\"panel panel-default\">\r\n     <div class=\"panel-heading\">Описание</div>\r\n  \t<textarea class=\"form-control\" ng-model=\"$ctrl.object.description\"></textarea>\r\n  </div>\r\n  <div class=\"panel panel-default\">\r\n     <div class=\"panel-heading\">Время</div>\r\n  \t<input class=\"form-control\" type=\"text\" ng-model=\"$ctrl.object.time\"></textarea>\r\n  </div>\r\n  <div class=\"panel panel-default\">\r\n  \t <div class=\"panel-heading\">Участники</div>\r\n  \t<ul class=\"list-inline\">\r\n  \t\t<li ng-repeat=\"user in $ctrl.object.users\">\r\n  \t\t\t<span ng-bind=\"user.name\"></span>\r\n  \t\t</li>\r\n  \t</ul>\r\n\t\t\r\n\t\t<button type=\"button\" class=\"btn btn-default btn-xs\" ng-init=\"changeUser=false\" ng-click=\"changeUser = !changeUser\">изменить</button>\r\n\t\t<div ng-if=\"changeUser\">\r\n\t\t\t<div class=\"panel panel-danger small\">\r\n\t\t\t\t<div class=\"panel-heading\">Удалить</div>\r\n\t\t\t\t<ul class=\"list-inline\">\r\n\t\t\t\t\t<li ng-repeat=\"user in $ctrl.object.users\">\r\n\t\t\t\t\t\t<span class=\"text-danger\" ng-bind=\"user.name\" ng-click=\"$ctrl.deleteUser($index)\"></span>\r\n\t\t\t\t\t</li>\r\n\t\t\t\t</ul>\r\n\t\t\t</div>\r\n\t\t\t<div class=\"panel panel-success small\">\r\n\t\t\t\t<div class=\"panel-heading\">Добавить</div>\r\n\t\t\t\t<ul class=\"list-inline\">\r\n\t\t\t\t\t<li ng-repeat=\"user in $ctrl.users\">\r\n\t\t\t\t\t\t<span class=\"text-success\" ng-bind=\"user.name\" ng-click=\"$ctrl.appendUser($index)\"></span>\r\n\t\t\t\t\t</li>\r\n\t\t\t\t</ul>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\r\n  </div>\r\n</div>";
 
 /***/ },
 /* 11 */
@@ -42151,25 +42158,21 @@
 	'use strict';
 
 	var ListTodo = function () {
-	  function ListTodo() {
+	  _createClass(ListTodo, null, [{
+	    key: '$inject',
+	    get: function get() {
+	      return ['mainService'];
+	    }
+	  }]);
+
+	  function ListTodo(mainService) {
 	    _classCallCheck(this, ListTodo);
 
-	    //this.object = {};
+	    this.mainService = mainService;
 	    this.textNewTodo = "";
 	    this.showAddTodo = false;
+	    this.showRename = false;
 	    this.showDelete = [];
-
-	    /*this.object.header = "list 1";
-	    var list = this.object.listTodo = [];
-	    list.push({'header': 'text header',
-	               'description': 'text desc',
-	               'time': '12:45',
-	               'serves':2,
-	               'users':[
-	                        {'name':'alex', 'id':0},
-	                        {'name':'karl', 'id':1}
-	                       ]
-	    });*/
 	  }
 
 	  _createClass(ListTodo, [{
@@ -42198,9 +42201,10 @@
 	      return obj;
 	    }
 	  }, {
-	    key: 'showSet',
-	    value: function showSet(obj) {
-	      this.showSetting({ 'obj': obj });
+	    key: 'moved',
+	    value: function moved(index) {
+	      this.object.listTodo.splice(index, 1);
+	      this.mainService.setSetting(null, false);
 	    }
 	  }]);
 
@@ -42211,8 +42215,7 @@
 	  template: template,
 	  controller: ListTodo,
 	  bindings: {
-	    object: '<',
-	    showSetting: '&'
+	    object: '<'
 	  }
 	};
 
@@ -42220,7 +42223,7 @@
 /* 12 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"panel panel-success\">\r\n\t<div class=\"panel-heading\" ng-bind=\"$ctrl.object.header\"></div>\r\n\t<ul class=\"panel-body listTodoDnd\"\r\n\t\t\t  dnd-list=\"$ctrl.object.listTodo\"\r\n        dnd-allowed-types=\"['itemType']\"\r\n\t      dnd-dragover=\"true\"\r\n\t      dnd-drop=\"item\">\r\n\r\n\t  <li  ng-repeat=\"todo in $ctrl.object.listTodo\"\r\n\t\t\t    dnd-draggable=\"todo\"\r\n          dnd-type=\"'itemType'\"\r\n          dnd-effect-allowed=\"copyMove\"\r\n          dnd-moved=\"$ctrl.object.listTodo.splice($index, 1)\">\r\n      \r\n  \t\t<div ng-if=\"!$ctrl.showDelete[$index]\" class=\"text-right small\">\r\n  \t\t\t<span ng-click=\"$ctrl.showDelete[$index] = !$ctrl.showDelete[$index]\">удалить задачу</span>\r\n  \t\t</div>\r\n  \t\t<table width='100%' ng-if=\"$ctrl.showDelete[$index]\">\r\n        <tr>\r\n  \t\t\t  <td><button type=\"button\" class=\"btn btn-success btn-xs\" ng-click=\"$ctrl.deleteTodo($index)\">удалить</button></td>\r\n  \t\t\t  <td class=\"text-right\"><button type=\"button\" class=\"btn btn-danger btn-xs\" ng-click=\"$ctrl.showDelete[$index] = !$ctrl.showDelete[$index]\">отмена</button></td>\r\n        </tr>\r\n  \t\t</table>\r\n\t  \t<todo-elem showSetting=\"$ctrl.showSet(obj)\" object='todo'></todo-elem>\r\n\t  </li>\r\n  </ul>\r\n\r\n\t<div class=\"text-center panel-body bg-success\"> \r\n    <div ng-if=\"!$ctrl.showAddTodo\">\r\n\t  \t<button type=\"button\" class=\"btn btn-default btn-xs\" ng-click=\"$ctrl.showAddTodo = !$ctrl.showAddTodo\">Добавить задачу</button>\r\n  \t</div>\r\n  \t<div class=\"text-left\" ng-if=\"$ctrl.showAddTodo\">\r\n  \t\t<input class=\"form-control\" type=\"text\" ng-model=\"$ctrl.textNewTodo\">\r\n  \t\t<button type=\"button\" class=\"btn btn-default btn-sm\" ng-click=\"$ctrl.appendNewTodo()\">Добавить</button>\r\n  \t\t<button type=\"button\" class=\"btn btn-default btn-sm\" ng-click=\"$ctrl.showAddTodo = !$ctrl.showAddTodo\">X</button>\r\n  \t</div>\r\n  </div>\r\n</div>";
+	module.exports = "<div class=\"panel panel-success\">\r\n\t<div ng-if=\"!$ctrl.showRename\" class=\"panel-heading\" ng-bind=\"$ctrl.object.header\" ng-click=\"$ctrl.showRename = !$ctrl.showRename\"></div>\r\n  <div ng-if=\"$ctrl.showRename\" class=\"panel-heading form-inline\">\r\n    <input type=\"text\" class=\"form-control\" ng-model=\"$ctrl.object.header\">\r\n    <button type=\"button\" class=\"btn btn-success btn-xs\" ng-click=\"$ctrl.showRename = !$ctrl.showRename\">OK</button>\r\n  </div>\r\n\t<ul class=\"panel-body listTodoDnd\"\r\n\t\t\t  dnd-list=\"$ctrl.object.listTodo\"\r\n        dnd-allowed-types=\"['itemType']\"\r\n\t      dnd-dragover=\"true\"\r\n\t      dnd-drop=\"item\">\r\n\r\n\t  <li  ng-repeat=\"todo in $ctrl.object.listTodo\"\r\n\t\t\t    dnd-draggable=\"todo\"\r\n          dnd-type=\"'itemType'\"\r\n          dnd-effect-allowed=\"copyMove\"\r\n          dnd-moved=\"$ctrl.moved($index)\">\r\n      \r\n  \t\t<div ng-if=\"!$ctrl.showDelete[$index]\" class=\"text-right small\">\r\n  \t\t\t<span ng-click=\"$ctrl.showDelete[$index] = !$ctrl.showDelete[$index]\">удалить задачу</span>\r\n  \t\t</div>\r\n  \t\t<table width='100%' ng-if=\"$ctrl.showDelete[$index]\">\r\n        <tr>\r\n  \t\t\t  <td><button type=\"button\" class=\"btn btn-success btn-xs\" ng-click=\"$ctrl.deleteTodo($index)\">удалить</button></td>\r\n  \t\t\t  <td class=\"text-right\"><button type=\"button\" class=\"btn btn-danger btn-xs\" ng-click=\"$ctrl.showDelete[$index] = !$ctrl.showDelete[$index]\">отмена</button></td>\r\n        </tr>\r\n  \t\t</table>\r\n\t  \t<todo-elem object='todo'></todo-elem>\r\n\t  </li>\r\n  </ul>\r\n\r\n\t<div class=\"text-center panel-body bg-success\"> \r\n    <div ng-if=\"!$ctrl.showAddTodo\">\r\n\t  \t<button type=\"button\" class=\"btn btn-default btn-xs\" ng-click=\"$ctrl.showAddTodo = !$ctrl.showAddTodo\">Добавить задачу</button>\r\n  \t</div>\r\n  \t<div class=\"text-left\" ng-if=\"$ctrl.showAddTodo\">\r\n  \t\t<input class=\"form-control\" type=\"text\" ng-model=\"$ctrl.textNewTodo\">\r\n  \t\t<button type=\"button\" class=\"btn btn-default btn-sm\" ng-click=\"$ctrl.appendNewTodo()\">Добавить</button>\r\n  \t\t<button type=\"button\" class=\"btn btn-default btn-sm\" ng-click=\"$ctrl.showAddTodo = !$ctrl.showAddTodo\">X</button>\r\n  \t</div>\r\n  </div>\r\n</div>";
 
 /***/ },
 /* 13 */
@@ -42237,14 +42240,20 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var ViewController = function () {
-	  //static get $inject(){ return ['mainService']; };
+	  _createClass(ViewController, null, [{
+	    key: '$inject',
+	    get: function get() {
+	      return ['mainService'];
+	    }
+	  }]);
 
-	  function ViewController() {
+	  function ViewController(mainService) {
 	    _classCallCheck(this, ViewController);
 
-	    this.object = [];
-	    this.selectedTodo = {};
-	    this.viewSetting = false;
+	    this.mainService = mainService;
+
+	    this.object = mainService.getList();
+	    this.setting = mainService.getSetting();
 	    this.showAddList = false;
 	    this.showDelete = [];
 	    this.textNewList = "";
@@ -42254,12 +42263,6 @@
 	  }
 
 	  _createClass(ViewController, [{
-	    key: 'showSetting',
-	    value: function showSetting(obj) {
-	      this.selectedTodo = obj;
-	      this.viewSetting = true;
-	    }
-	  }, {
 	    key: 'appendNewList',
 	    value: function appendNewList() {
 	      if (this.textNewList) {
@@ -42281,15 +42284,86 @@
 	    value: function deleteList(index) {
 	      this.object.splice(index, 1);
 	    }
-	  }, {
-	    key: 'showSetting',
-	    value: function showSetting(obj) {}
 	  }]);
 
 	  return ViewController;
 	}();
 
 	exports.default = ViewController;
+
+/***/ },
+/* 14 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var MainService = function () {
+	  //static get $inject(){ return ['loaderService']; };
+
+	  function MainService() {
+	    _classCallCheck(this, MainService);
+
+	    this.board = {};
+	    this.board.lists = [];
+
+	    this.users = [];
+
+	    this.addition = {};
+	    this.addition.setting = {};
+	    this.addition.setting.selectedTodo = {};
+	    this.addition.setting.viewSetting = false;
+
+	    this.loadBoard();
+	    this.loadUsers();
+	  }
+
+	  _createClass(MainService, [{
+	    key: "loadBoard",
+	    value: function loadBoard() {}
+	  }, {
+	    key: "loadUsers",
+	    value: function loadUsers() {
+	      this.users.push({ "name": "Andre", 'id': 0 });
+	      this.users.push({ "name": "John", 'id': 1 });
+	      this.users.push({ "name": "Tim", 'id': 2 });
+	      this.users.push({ "name": "Tommi", 'id': 3 });
+	      this.users.push({ "name": "Mikl", 'id': 4 });
+	    }
+	  }, {
+	    key: "getUsers",
+	    value: function getUsers() {
+	      return this.users;
+	    }
+	  }, {
+	    key: "setSetting",
+	    value: function setSetting(selTodo, view) {
+	      this.addition.setting.selectedTodo = selTodo;
+	      this.addition.setting.viewSetting = view;
+	    }
+	  }, {
+	    key: "getSetting",
+	    value: function getSetting() {
+	      return this.addition.setting;
+	    }
+	  }, {
+	    key: "getList",
+	    value: function getList() {
+	      return this.board.lists;
+	    }
+	  }]);
+
+	  return MainService;
+	}();
+
+	exports.default = MainService;
 
 /***/ }
 /******/ ]);
