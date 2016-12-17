@@ -7,6 +7,7 @@ class ListTodo{
     //this.object = {};
     this.textNewTodo = "";
     this.showAddTodo = false;
+    this.showDelete=[];
 
     /*this.object.header = "list 1";
     var list = this.object.listTodo = [];
@@ -30,9 +31,7 @@ class ListTodo{
   }
 
   deleteTodo(index){
-    if(confirm("Вы действительно этотите удалить элемент '"+this.object.listTodo[index].header+"'?")){
-      this.object.listTodo.splice(index,1);
-    }
+    this.object.listTodo.splice(index,1);
   }
 
   newTodo(text){
@@ -44,12 +43,17 @@ class ListTodo{
     obj.users = [];
     return obj;
   }
+
+  showSet(obj){
+    this.showSetting({'obj':obj});
+  }
 }
 
 export default {
   template,
   controller: ListTodo,
   bindings:{
-    object:'<'
+    object:'<',
+    showSetting: '&'
   }
 };

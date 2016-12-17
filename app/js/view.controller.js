@@ -8,6 +8,7 @@ class ViewController{
   	this.selectedTodo = {};
     this.viewSetting = false;
     this.showAddList = false;
+    this.showDelete = [];
     this.textNewList = "";
 
     this.object.push(this.newList('Новые задачи'));
@@ -33,6 +34,14 @@ class ViewController{
     obj.header = text;
     obj.listTodo = [];
     return obj;
+  }
+
+  deleteList(index){
+    this.object.splice(index,1);
+  }
+
+  showSetting(obj){
+    
   }
 }
 

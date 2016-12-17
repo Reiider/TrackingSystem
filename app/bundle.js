@@ -42051,7 +42051,7 @@
 /* 8 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"panel panel-primary\" ng-click=\"$ctrl.show()\">\r\n\t<div class=\"panel-heading\" ng-bind=\"$ctrl.object.header\"></div>\r\n\t<div class=\"panel-footer small\">\r\n\t\t<table cols='2' width='100%'><tr>\r\n\t \t  <td class=\"col-md-6\" ng-bind=\"$ctrl.object.time\"></td>\r\n\t  \t<td class=\"col-md-6 text-right\" ng-bind=\"'Выполняет '+$ctrl.object.serves+' чел.'\"></td>\r\n\t  <tr></table>\r\n\t</div>\r\n</div>";
+	module.exports = "<div class=\"panel panel-primary\" ng-click=\"$ctrl.show()\">\r\n\t<div class=\"panel-heading\" ng-bind=\"$ctrl.object.header\"></div>\r\n\t<div class=\"panel-footer small\">\r\n\t\t<table width='100%'><tr>\r\n\t \t  <td ng-bind=\"$ctrl.object.time\"></td>\r\n\t  \t<td class=\"text-right\" ng-bind=\"'Выполняет '+$ctrl.object.serves+' чел.'\"></td>\r\n\t  <tr></table>\r\n\t</div>\r\n</div>";
 
 /***/ },
 /* 9 */
@@ -42157,6 +42157,7 @@
 	    //this.object = {};
 	    this.textNewTodo = "";
 	    this.showAddTodo = false;
+	    this.showDelete = [];
 
 	    /*this.object.header = "list 1";
 	    var list = this.object.listTodo = [];
@@ -42183,9 +42184,7 @@
 	  }, {
 	    key: 'deleteTodo',
 	    value: function deleteTodo(index) {
-	      if (confirm("Вы действительно этотите удалить элемент '" + this.object.listTodo[index].header + "'?")) {
-	        this.object.listTodo.splice(index, 1);
-	      }
+	      this.object.listTodo.splice(index, 1);
 	    }
 	  }, {
 	    key: 'newTodo',
@@ -42198,6 +42197,11 @@
 	      obj.users = [];
 	      return obj;
 	    }
+	  }, {
+	    key: 'showSet',
+	    value: function showSet(obj) {
+	      this.showSetting({ 'obj': obj });
+	    }
 	  }]);
 
 	  return ListTodo;
@@ -42207,7 +42211,8 @@
 	  template: template,
 	  controller: ListTodo,
 	  bindings: {
-	    object: '<'
+	    object: '<',
+	    showSetting: '&'
 	  }
 	};
 
@@ -42215,7 +42220,7 @@
 /* 12 */
 /***/ function(module, exports) {
 
-	module.exports = "<div class=\"panel panel-success\">\r\n\t<div class=\"panel-heading\" ng-bind=\"$ctrl.object.header\"></div>\r\n\t<ul class=\"panel-body advancedDemo\"\r\n\t\t\t  dnd-list=\"$ctrl.object.listTodo\"\r\n        dnd-allowed-types=\"['itemType']\"\r\n\t      dnd-horizontal-list=\"true\"\r\n\t      dnd-external-sources=\"true\"\r\n\t      dnd-dragover=\"true\"\r\n\t      dnd-drop=\"item\">\r\n\r\n\t  <li  ng-repeat=\"todo in $ctrl.object.listTodo\"\r\n\t\t\t    dnd-draggable=\"todo\"\r\n          dnd-type=\"'itemType'\"\r\n          dnd-effect-allowed=\"copyMove\"\r\n          dnd-moved=\"$ctrl.object.listTodo.splice($index, 1)\">\r\n\r\n\t  \t<div class=\"text-right small\"><span ng-click=\"$ctrl.deleteTodo($index)\">удалить</span></div>\r\n\t  \t<todo-elem object='todo'></todo-elem>\r\n\t  </li>\r\n\r\n\t  <div ng-if=\"!$ctrl.showAddTodo\">\r\n\t  \t<button type=\"button\" class=\"btn btn-default btn-xs\" ng-click=\"$ctrl.showAddTodo = !$ctrl.showAddTodo\">Добавить задачу</button>\r\n  \t</div>\r\n  \t<div class=\"text-left\" ng-if=\"$ctrl.showAddTodo\">\r\n  \t\t<input class=\"form-control\" type=\"text\" ng-model=\"$ctrl.textNewTodo\">\r\n  \t\t<button type=\"button\" class=\"btn btn-default btn-sm\" ng-click=\"$ctrl.appendNewTodo()\">Добавить</button>\r\n  \t\t<button type=\"button\" class=\"btn btn-default btn-sm\" ng-click=\"$ctrl.showAddTodo = !$ctrl.showAddTodo\">X</button>\r\n  \t</div>\r\n\r\n\t</ul>\r\n</div>";
+	module.exports = "<div class=\"panel panel-success\">\r\n\t<div class=\"panel-heading\" ng-bind=\"$ctrl.object.header\"></div>\r\n\t<ul class=\"panel-body listTodoDnd\"\r\n\t\t\t  dnd-list=\"$ctrl.object.listTodo\"\r\n        dnd-allowed-types=\"['itemType']\"\r\n\t      dnd-dragover=\"true\"\r\n\t      dnd-drop=\"item\">\r\n\r\n\t  <li  ng-repeat=\"todo in $ctrl.object.listTodo\"\r\n\t\t\t    dnd-draggable=\"todo\"\r\n          dnd-type=\"'itemType'\"\r\n          dnd-effect-allowed=\"copyMove\"\r\n          dnd-moved=\"$ctrl.object.listTodo.splice($index, 1)\">\r\n      \r\n  \t\t<div ng-if=\"!$ctrl.showDelete[$index]\" class=\"text-right small\">\r\n  \t\t\t<span ng-click=\"$ctrl.showDelete[$index] = !$ctrl.showDelete[$index]\">удалить задачу</span>\r\n  \t\t</div>\r\n  \t\t<table width='100%' ng-if=\"$ctrl.showDelete[$index]\">\r\n        <tr>\r\n  \t\t\t  <td><button type=\"button\" class=\"btn btn-success btn-xs\" ng-click=\"$ctrl.deleteTodo($index)\">удалить</button></td>\r\n  \t\t\t  <td class=\"text-right\"><button type=\"button\" class=\"btn btn-danger btn-xs\" ng-click=\"$ctrl.showDelete[$index] = !$ctrl.showDelete[$index]\">отмена</button></td>\r\n        </tr>\r\n  \t\t</table>\r\n\t  \t<todo-elem showSetting=\"$ctrl.showSet(obj)\" object='todo'></todo-elem>\r\n\t  </li>\r\n  </ul>\r\n\r\n\t<div class=\"text-center panel-body bg-success\"> \r\n    <div ng-if=\"!$ctrl.showAddTodo\">\r\n\t  \t<button type=\"button\" class=\"btn btn-default btn-xs\" ng-click=\"$ctrl.showAddTodo = !$ctrl.showAddTodo\">Добавить задачу</button>\r\n  \t</div>\r\n  \t<div class=\"text-left\" ng-if=\"$ctrl.showAddTodo\">\r\n  \t\t<input class=\"form-control\" type=\"text\" ng-model=\"$ctrl.textNewTodo\">\r\n  \t\t<button type=\"button\" class=\"btn btn-default btn-sm\" ng-click=\"$ctrl.appendNewTodo()\">Добавить</button>\r\n  \t\t<button type=\"button\" class=\"btn btn-default btn-sm\" ng-click=\"$ctrl.showAddTodo = !$ctrl.showAddTodo\">X</button>\r\n  \t</div>\r\n  </div>\r\n</div>";
 
 /***/ },
 /* 13 */
@@ -42241,6 +42246,7 @@
 	    this.selectedTodo = {};
 	    this.viewSetting = false;
 	    this.showAddList = false;
+	    this.showDelete = [];
 	    this.textNewList = "";
 
 	    this.object.push(this.newList('Новые задачи'));
@@ -42270,6 +42276,14 @@
 	      obj.listTodo = [];
 	      return obj;
 	    }
+	  }, {
+	    key: 'deleteList',
+	    value: function deleteList(index) {
+	      this.object.splice(index, 1);
+	    }
+	  }, {
+	    key: 'showSetting',
+	    value: function showSetting(obj) {}
 	  }]);
 
 	  return ViewController;

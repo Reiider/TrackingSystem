@@ -5,10 +5,13 @@
     width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
+    display: table;
     white-space: nowrap; 
 }
 .inlineBlock{
   display: inline-block;
+  white-space: normal; 
+  vertical-align: top;
 }
 .board.click{
   width:68%;
@@ -19,10 +22,15 @@
 .settingTodo.click{
   width:28%;
 }
-ul[dnd-list], ul[dnd-list] > li {
+.listTodoDnd, .listTodoDnd > li {
     position: relative;
     list-style-type: none;
     min-height: 50px;
+}
+.boardDnd, .boardDnd > li {
+    position: relative;
+    list-style-type: none;
+    min-width: 50px;
 }
 .listTodo{
   float:left;
@@ -31,4 +39,25 @@ ul[dnd-list], ul[dnd-list] > li {
   margin-top: 10px;
   margin-left: 10px;
   margin-right: 10px;
+}
+.toShowDelList{
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.dndDraggingSource {
+  display: none;
+}
+.listTodoDnd .dndPlaceholder {
+    background-color: #ddd !important;
+    min-height: 30px;
+    display: inline-block;
+}
+
+.boardDnd .dndPlaceholder {
+    background-color: #ddd !important;
+    width: 318px;
+    min-height: 40px;
+    margin-top: 11px;
+    display: inline-block;
 }

@@ -9,22 +9,49 @@
 	</head>
 
 	<body ng-controller="ViewController as View">
-    <div class="boardInterior">
-      <div class="board boardInterior" ng-class="{click: View.viewSetting}">
-        <div class="inlineBlock"><list-todo class="listTodo " ng-repeat="list in View.object" object="list"></list-todo></div>
-        <div class="inlineBlock listTodo">
+    <div class="board" ng-class="{click: View.viewSetting}">
+      <ul class="boardInterior boardDnd"
+          dnd-list="View.object"
+          dnd-allowed-types="['containerType']"
+          dnd-external-sources="true"
+          dnd-horizontal-list="true"
+          dnd-dragover="true"
+          dnd-drop="item">
+          <li class="inlineBlock" ng-repeat="list in View.object"
+              dnd-draggable="list"
+              dnd-type="'containerType'"
+              dnd-effect-allowed="copyMove"
+              dnd-moved="View.object.splice($index, 1)">
+           
+              <list-todo class="listTodo" object="list" showSetting="View.showSetting(obj)"></list-todo>
+              <div ng-if="!View.showDelete[$index]" class="text-center small">
+                <span ng-click="View.showDelete[$index] = !View.showDelete[$index]">удалить список</span>
+              </div>
+              <div class="toShowDelList">
+              <table width='100%' ng-if="View.showDelete[$index]">
+                <tr>
+                  <th><button type="button" class="btn btn-success btn-xs" ng-click="View.deleteList($index)">удалить</button></td>
+                  <th class="text-right"><button type="button" class="btn btn-danger btn-xs" ng-click="View.showDelete[$index] = !View.showDelete[$index]">отмена</button></td>
+                </tr>
+              </table>
+              </div>
+            
+          </li>
+          <li class="inlineBlock  text-center ">
+            <div class="listTodo panel panel-success">
 
-          <div ng-if="!View.showAddList">
-            <button type="button" class="btn btn-default btn-xs" ng-click="View.showAddList = !View.showAddList">Добавить список</button>
-          </div>
-          <div class="text-left" ng-if="View.showAddList">
-            <input class="form-control" type="text" ng-model="View.textNewList">
-            <button type="button" class="btn btn-default btn-sm" ng-click="View.appendNewList()">Добавить</button>
-            <button type="button" class="btn btn-default btn-sm" ng-click="View.showAddList = !View.showAddList">X</button>
-          </div>
+              <div ng-if="!View.showAddList" class="panel-heading">
+                <button type="button" class="btn btn-default btn-xs " ng-click="View.showAddList = !View.showAddList">Добавить список</button>
+              </div>
+              <div class="text-left panel-heading" ng-if="View.showAddList">
+                <input class="form-control" type="text" ng-model="View.textNewList">
+                <button type="button" class="btn btn-default btn-sm" ng-click="View.appendNewList()">Добавить</button>
+                <button type="button" class="btn btn-default btn-sm" ng-click="View.showAddList = !View.showAddList">X</button>
+              </div>
 
-        </div>
-      </div>
+            </div>
+        </li>
+      </ul>
     </div>
   	<div class="settingTodo" ng-class="{click: View.viewSetting}">
   		
