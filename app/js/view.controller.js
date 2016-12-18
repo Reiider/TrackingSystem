@@ -12,16 +12,19 @@ class ViewController{
     this.showDelete = [];
     this.textNewList = "";
 
-    this.object.push(this.newList('Новые задачи'));
-    this.object.push(this.newList('Выполняемые задачи'));
-
+    if(!this.loadBoard()){
+      this.object.lists.push(this.newList('Новые задачи'));
+      this.object.lists.push(this.newList('Выполняемые задачи'));
+      this.object.lists.push(this.newList('Завершенные задачи'));
+    }
   }
 
   appendNewList(){
     if(this.textNewList){
-      this.object.push(this.newList(this.textNewList));
+      this.object.lists.push(this.newList(this.textNewList));
       this.textNewList = "";
       this.showAddList = !this.showAddList;
+      this.saveBoard();
     }
   }
 
@@ -33,7 +36,16 @@ class ViewController{
   }
 
   deleteList(index){
-    this.object.splice(index,1);
+    this.object.lists.splice(index,1);
+    this.saveBoard();
+  }
+
+  saveBoard(){
+    this.mainService.saveBoard();
+  }
+
+  loadBoard(){
+    return this.mainService.loadBoard();
   }
 }
 

@@ -1,8 +1,6 @@
 'use strict'
 
 class MainService{
-  //static get $inject(){ return ['loaderService']; };
-
   constructor(){
     this.board = {};
     this.board.lists = [];
@@ -14,12 +12,21 @@ class MainService{
     this.addition.setting.selectedTodo = {};
     this.addition.setting.viewSetting = false;
 
-    this.loadBoard();
     this.loadUsers();
   }
   
   loadBoard(){
+    if(localStorage.getItem('boardList')){
+      this.board.lists = JSON.parse(localStorage.getItem('boardList'));
+      return true;
+    }
+    else{
+      return false;
+    }
+  }
 
+  saveBoard(){
+    localStorage.setItem('boardList', JSON.stringify(this.board.lists));
   }
 
   loadUsers(){
@@ -44,7 +51,7 @@ class MainService{
   }
 
   getList(){
-    return this.board.lists;
+    return this.board;
   }
 
 }

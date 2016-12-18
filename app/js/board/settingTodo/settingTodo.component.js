@@ -8,16 +8,14 @@ class SettingTodo{
   constructor(mainService){
     this.mainService = mainService;
 
+    this.object = {};
     this.users = mainService.getUsers();
-  }
-
-  showWindow(){
-  	alert("nothing");
   }
 
   deleteUser(id){
     this.object.users.splice(id,1);
     this.object.serves--;
+    this.mainService.saveBoard();
   }
 
   appendUser(id){
@@ -30,11 +28,13 @@ class SettingTodo{
     if(!is){
       this.object.serves++;
       this.object.users.push(this.users[id]);
+      this.mainService.saveBoard();
     }
   }
 
   close(){
     this.mainService.setSetting(null,false);
+    this.mainService.saveBoard();
   }
 }
 

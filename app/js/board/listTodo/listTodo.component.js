@@ -7,6 +7,8 @@ class ListTodo{
 
   constructor(mainService){
     this.mainService = mainService;
+
+    this.object = {};
     this.textNewTodo = "";
     this.showAddTodo = false;
     this.showRename = false;
@@ -18,11 +20,14 @@ class ListTodo{
       this.object.listTodo.push(this.newTodo(this.textNewTodo));
       this.textNewTodo = "";
       this.showAddTodo = !this.showAddTodo;
+      this.mainService.saveBoard();
     }
   }
 
   deleteTodo(index){
     this.object.listTodo.splice(index,1);
+    this.mainService.setSetting(null, false);
+    this.mainService.saveBoard();
   }
 
   newTodo(text){
@@ -33,11 +38,6 @@ class ListTodo{
     obj.serves = 0;
     obj.users = [];
     return obj;
-  }
-
-  moved(index){
-    this.object.listTodo.splice(index, 1);
-    this.mainService.setSetting(null, false);
   }
 }
 

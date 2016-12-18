@@ -14,7 +14,7 @@
 			    dnd-draggable="todo"
           dnd-type="'itemType'"
           dnd-effect-allowed="copyMove"
-          dnd-moved="$ctrl.moved($index)">
+          dnd-moved="$ctrl.deleteTodo($index)">
       
   		<div ng-if="!$ctrl.showDelete[$index]" class="text-right small">
   			<span ng-click="$ctrl.showDelete[$index] = !$ctrl.showDelete[$index]">удалить задачу</span>
